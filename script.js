@@ -265,87 +265,17 @@ function initContactForm() {
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // Get submit button and show loading state
-        const submitBtn = form.querySelector('.submit-btn');
-        const originalBtnContent = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<span>Sending...</span><i class="fas fa-spinner fa-spin"></i>';
-        submitBtn.disabled = true;
-
-        // Get form data
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-
-        // Save to Firebase Firestore
-        let result = { success: false };
-
-        // Check if Firebase is available
-        if (typeof saveContactMessage === 'function') {
-            result = await saveContactMessage(data);
-        } else {
-            console.warn('Firebase not configured. Message not saved to database.');
-            result = { success: true }; // Still show success for demo
-        }
-
-        // Restore button
-        submitBtn.innerHTML = originalBtnContent;
-        submitBtn.disabled = false;
-
-        // Create message element
-        const messageElement = document.createElement('div');
-
-        if (result.success) {
-            // Success message
-            messageElement.className = 'form-success';
-            messageElement.innerHTML = `
-                <i class="fas fa-check-circle"></i>
-                <p>Thank you for your message! I'll get back to you soon.</p>
-            `;
-            messageElement.style.cssText = `
-                background: var(--gradient-1);
-                padding: 20px;
-                border-radius: 15px;
-                text-align: center;
-                margin-top: 20px;
-                animation: fadeInUp 0.5s ease;
-            `;
-            form.reset();
-        } else {
-            // Error message
-            messageElement.className = 'form-error';
-            messageElement.innerHTML = `
-                <i class="fas fa-exclamation-circle"></i>
-                <p>Oops! Something went wrong. Please try again.</p>
-            `;
-            messageElement.style.cssText = `
-                background: linear-gradient(135deg, #ff4757, #ff6b7a);
-                padding: 20px;
-                border-radius: 15px;
-                text-align: center;
-                margin-top: 20px;
-                animation: fadeInUp 0.5s ease;
-            `;
-        }
-
-        form.appendChild(messageElement);
-
-        // Remove message after 5 seconds
-        setTimeout(() => {
-            messageElement.remove();
-        }, 5000);
-    });
-
     // Add focus effects to form inputs
     const inputs = form.querySelectorAll('input, textarea');
     inputs.forEach(input => {
         input.addEventListener('focus', () => {
-            input.parentElement.querySelector('.form-icon').style.color = 'var(--primary)';
+            const icon = input.parentElement.querySelector('.form-icon');
+            if (icon) icon.style.color = 'var(--primary)';
         });
 
         input.addEventListener('blur', () => {
-            input.parentElement.querySelector('.form-icon').style.color = 'var(--text-muted)';
+            const icon = input.parentElement.querySelector('.form-icon');
+            if (icon) icon.style.color = 'var(--text-muted)';
         });
     });
 }

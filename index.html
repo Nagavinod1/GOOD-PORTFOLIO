@@ -629,11 +629,117 @@
         <i class="fas fa-arrow-up"></i>
     </a>
 
-    <!-- Firebase Configuration (Modular SDK) -->
-    <script type="module" src="firebase-config.js"></script>
-
     <!-- Main Script -->
     <script src="script.js"></script>
+
+    <!-- Firebase Configuration & Contact Form Handler -->
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1feaTidkmfDErcoX1K8HbEQefpPBjs-M",
+            authDomain: "portfolio-12523.firebaseapp.com",
+            projectId: "portfolio-12523",
+            storageBucket: "portfolio-12523.firebasestorage.app",
+            messagingSenderId: "310316838097",
+            appId: "1:310316838097:web:fae714d4aea469dfc169f0",
+            measurementId: "G-NN8JBV451L"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        console.log('🔥 Firebase connected successfully!');
+
+        // Contact Form Handler - Save to Firebase
+        const contactForm = document.getElementById('contactForm');
+
+        if (contactForm) {
+            contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Get submit button
+                const submitBtn = contactForm.querySelector('.submit-btn');
+                const originalBtnContent = submitBtn.innerHTML;
+
+                // Show loading state
+                submitBtn.innerHTML = '<span>Sending...</span><i class="fas fa-spinner fa-spin"></i>';
+                submitBtn.disabled = true;
+
+                // Get form data
+                const formData = new FormData(contactForm);
+                const name = formData.get('name');
+                const email = formData.get('email');
+                const subject = formData.get('subject');
+                const message = formData.get('message');
+
+                try {
+                    // Save to Firebase Firestore
+                    const docRef = await addDoc(collection(db, 'contact_messages'), {
+                        name: name,
+                        email: email,
+                        subject: subject,
+                        message: message,
+                        timestamp: serverTimestamp(),
+                        read: false
+                    });
+
+                    console.log('✅ Message saved with ID:', docRef.id);
+
+                    // Show success message
+                    showFormMessage(contactForm, true, 'Thank you for your message! I\'ll get back to you soon.');
+                    contactForm.reset();
+
+                } catch (error) {
+                    console.error('❌ Error saving message:', error);
+                    showFormMessage(contactForm, false, 'Oops! Something went wrong. Please try again.');
+                }
+
+                // Restore button
+                submitBtn.innerHTML = originalBtnContent;
+                submitBtn.disabled = false;
+            });
+        }
+
+        // Show form message function
+        function showFormMessage(form, isSuccess, text) {
+            // Remove existing messages
+            const existingMsg = form.querySelector('.form-message');
+            if (existingMsg) existingMsg.remove();
+
+            const messageElement = document.createElement('div');
+            messageElement.className = 'form-message';
+            messageElement.innerHTML = `
+                <i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <p>${text}</p>
+            `;
+            messageElement.style.cssText = `
+                background: ${isSuccess ? 'linear-gradient(135deg, #00d4aa, #00b894)' : 'linear-gradient(135deg, #ff4757, #ff6b7a)'};
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                margin-top: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                animation: fadeInUp 0.5s ease;
+            `;
+
+            form.appendChild(messageElement);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                messageElement.remove();
+            }, 5000);
+        }
+    </script>
 </body>
 
 </html>
