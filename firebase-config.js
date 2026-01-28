@@ -1,10 +1,12 @@
 /* ============================================
-   FIREBASE CONFIGURATION
-   Replace these values with your Firebase project config
+   FIREBASE CONFIGURATION (Modular SDK v12.8.0)
    ============================================ */
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
 // Your web app's Firebase configuration
-// Project: portfolio-12523
 const firebaseConfig = {
     apiKey: "AIzaSyC1feaTidkmfDErcoX1K8HbEQefpPBjs-M",
     authDomain: "portfolio-12523.firebaseapp.com",
@@ -16,10 +18,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-
-// Initialize Firestore database
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
 // ============================================
 // DATABASE FUNCTIONS
@@ -32,12 +33,12 @@ const db = firebase.firestore();
  */
 async function saveContactMessage(messageData) {
     try {
-        const docRef = await db.collection('contact_messages').add({
+        const docRef = await addDoc(collection(db, 'contact_messages'), {
             name: messageData.name,
             email: messageData.email,
             subject: messageData.subject,
             message: messageData.message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: serverTimestamp(),
             read: false
         });
         console.log('✅ Message saved with ID:', docRef.id);
@@ -48,54 +49,7 @@ async function saveContactMessage(messageData) {
     }
 }
 
-/**
- * Get all contact messages (for admin use)
- * @returns {Promise<Array>} - Array of messages
- */
-async function getContactMessages() {
-    try {
-        const snapshot = await db.collection('contact_messages')
-            .orderBy('timestamp', 'desc')
-            .get();
+// Export functions for use in other scripts
+window.saveContactMessage = saveContactMessage;
 
-        const messages = [];
-        snapshot.forEach(doc => {
-            messages.push({ id: doc.id, ...doc.data() });
-        });
-        return messages;
-    } catch (error) {
-        console.error('❌ Error fetching messages:', error);
-        return [];
-    }
-}
-
-/**
- * Mark a message as read
- * @param {string} messageId - The message document ID
- */
-async function markMessageAsRead(messageId) {
-    try {
-        await db.collection('contact_messages').doc(messageId).update({
-            read: true
-        });
-        console.log('✅ Message marked as read');
-    } catch (error) {
-        console.error('❌ Error updating message:', error);
-    }
-}
-
-/**
- * Delete a contact message
- * @param {string} messageId - The message document ID
- */
-async function deleteContactMessage(messageId) {
-    try {
-        await db.collection('contact_messages').doc(messageId).delete();
-        console.log('✅ Message deleted');
-    } catch (error) {
-        console.error('❌ Error deleting message:', error);
-    }
-}
-
-// Log Firebase initialization status
 console.log('🔥 Firebase initialized successfully!');

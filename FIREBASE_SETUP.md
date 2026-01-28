@@ -57,16 +57,17 @@ Click **"Publish"** to save the rules.
 
 ### Step 5: Update Your Config File
 
-Open `firebase-config.js` and replace the placeholder values:
+Your `firebase-config.js` is already configured with:
 
 ```javascript
 const firebaseConfig = {
-    apiKey: "YOUR_ACTUAL_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyC1feaTidkmfDErcoX1K8HbEQefpPBjs-M",
+    authDomain: "portfolio-12523.firebaseapp.com",
+    projectId: "portfolio-12523",
+    storageBucket: "portfolio-12523.firebasestorage.app",
+    messagingSenderId: "310316838097",
+    appId: "1:310316838097:web:fae714d4aea469dfc169f0",
+    measurementId: "G-NN8JBV451L"
 };
 ```
 
@@ -96,9 +97,9 @@ Your contact form will now save messages to Firebase Firestore.
 
 | File | Description |
 |------|-------------|
-| `firebase-config.js` | Firebase initialization & database functions |
-| `index.html` | Added Firebase SDK scripts |
-| `script.js` | Updated contact form to save to database |
+| `firebase-config.js` | Firebase initialization using Modular SDK v12.8.0 |
+| `index.html` | Updated to use ES module script tag |
+| `script.js` | Contact form handler that saves to database |
 
 ---
 
