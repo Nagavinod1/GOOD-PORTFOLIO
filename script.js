@@ -4,7 +4,7 @@
    ============================================ */
 
 // Wait for DOM to load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize all components
     initCustomCursor();
     initNavbar();
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initCustomCursor() {
     const cursor = document.querySelector('.cursor');
     const cursorFollower = document.querySelector('.cursor-follower');
-    
+
     if (!cursor || !cursorFollower) return;
 
     let mouseX = 0, mouseY = 0;
@@ -52,14 +52,14 @@ function initCustomCursor() {
 
     // Cursor effects on hover
     const hoverElements = document.querySelectorAll('a, button, .btn, .project-card, .skill-item, .cert-card');
-    
+
     hoverElements.forEach(el => {
         el.addEventListener('mouseenter', () => {
             cursor.style.transform = 'scale(1.5)';
             cursorFollower.style.transform = 'scale(1.5)';
             cursorFollower.style.borderColor = 'var(--secondary)';
         });
-        
+
         el.addEventListener('mouseleave', () => {
             cursor.style.transform = 'scale(1)';
             cursorFollower.style.transform = 'scale(1)';
@@ -100,16 +100,16 @@ function initNavbar() {
 
     // Active link on scroll
     const sections = document.querySelectorAll('section[id]');
-    
+
     window.addEventListener('scroll', () => {
         const scrollY = window.pageYOffset;
-        
+
         sections.forEach(section => {
             const sectionHeight = section.offsetHeight;
             const sectionTop = section.offsetTop - 100;
             const sectionId = section.getAttribute('id');
             const navLink = document.querySelector(`.nav-link[href="#${sectionId}"]`);
-            
+
             if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
                 navItems.forEach(item => item.classList.remove('active'));
                 navLink?.classList.add('active');
@@ -130,7 +130,7 @@ function initTypingAnimation() {
         'Problem Solver',
         'Tech Innovator'
     ];
-    
+
     let wordIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
@@ -138,7 +138,7 @@ function initTypingAnimation() {
 
     function type() {
         const currentWord = words[wordIndex];
-        
+
         if (isDeleting) {
             dynamicText.textContent = currentWord.substring(0, charIndex - 1);
             charIndex--;
@@ -177,7 +177,7 @@ function initScrollAnimations() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('animate-in');
-                
+
                 // Trigger skill bars animation
                 if (entry.target.classList.contains('skills')) {
                     animateSkillBars();
@@ -190,7 +190,7 @@ function initScrollAnimations() {
     const animatedElements = document.querySelectorAll(
         '.about-card, .skill-item, .project-card, .timeline-item, .cert-card, .contact-item, section'
     );
-    
+
     animatedElements.forEach(el => {
         el.classList.add('animate-on-scroll');
         observer.observe(el);
@@ -231,7 +231,7 @@ function initSkillBars() {
 
 function animateSkillBars() {
     const skillBars = document.querySelectorAll('.skill-progress');
-    
+
     skillBars.forEach(bar => {
         const progress = bar.getAttribute('data-progress');
         bar.style.width = progress + '%';
@@ -265,38 +265,75 @@ function initContactForm() {
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
+        // Get submit button and show loading state
+        const submitBtn = form.querySelector('.submit-btn');
+        const originalBtnContent = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span>Sending...</span><i class="fas fa-spinner fa-spin"></i>';
+        submitBtn.disabled = true;
+
         // Get form data
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
-        
-        // Here you would typically send the data to a server
-        // For now, we'll just show a success message
-        
-        // Create success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'form-success';
-        successMessage.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <p>Thank you for your message! I'll get back to you soon.</p>
-        `;
-        successMessage.style.cssText = `
-            background: var(--gradient-1);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin-top: 20px;
-            animation: fadeInUp 0.5s ease;
-        `;
-        
-        form.appendChild(successMessage);
-        form.reset();
-        
-        // Remove success message after 5 seconds
+
+        // Save to Firebase Firestore
+        let result = { success: false };
+
+        // Check if Firebase is available
+        if (typeof saveContactMessage === 'function') {
+            result = await saveContactMessage(data);
+        } else {
+            console.warn('Firebase not configured. Message not saved to database.');
+            result = { success: true }; // Still show success for demo
+        }
+
+        // Restore button
+        submitBtn.innerHTML = originalBtnContent;
+        submitBtn.disabled = false;
+
+        // Create message element
+        const messageElement = document.createElement('div');
+
+        if (result.success) {
+            // Success message
+            messageElement.className = 'form-success';
+            messageElement.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <p>Thank you for your message! I'll get back to you soon.</p>
+            `;
+            messageElement.style.cssText = `
+                background: var(--gradient-1);
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                margin-top: 20px;
+                animation: fadeInUp 0.5s ease;
+            `;
+            form.reset();
+        } else {
+            // Error message
+            messageElement.className = 'form-error';
+            messageElement.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Oops! Something went wrong. Please try again.</p>
+            `;
+            messageElement.style.cssText = `
+                background: linear-gradient(135deg, #ff4757, #ff6b7a);
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                margin-top: 20px;
+                animation: fadeInUp 0.5s ease;
+            `;
+        }
+
+        form.appendChild(messageElement);
+
+        // Remove message after 5 seconds
         setTimeout(() => {
-            successMessage.remove();
+            messageElement.remove();
         }, 5000);
     });
 
@@ -306,7 +343,7 @@ function initContactForm() {
         input.addEventListener('focus', () => {
             input.parentElement.querySelector('.form-icon').style.color = 'var(--primary)';
         });
-        
+
         input.addEventListener('blur', () => {
             input.parentElement.querySelector('.form-icon').style.color = 'var(--text-muted)';
         });
@@ -316,13 +353,13 @@ function initContactForm() {
 /* ============ SMOOTH SCROLL ============ */
 function initSmoothScroll() {
     const links = document.querySelectorAll('a[href^="#"]');
-    
+
     links.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href');
             const targetElement = document.querySelector(targetId);
-            
+
             if (targetElement) {
                 const offsetTop = targetElement.offsetTop - 80;
                 window.scrollTo({
@@ -383,22 +420,22 @@ function createParticles() {
 /* ============ TILT EFFECT FOR CARDS ============ */
 function initTiltEffect() {
     const cards = document.querySelectorAll('.project-card, .about-card');
-    
+
     cards.forEach(card => {
         card.addEventListener('mousemove', (e) => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-            
+
             const rotateX = (y - centerY) / 10;
             const rotateY = (centerX - x) / 10;
-            
+
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
         });
-        
+
         card.addEventListener('mouseleave', () => {
             card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
         });
@@ -412,7 +449,7 @@ function initTiltEffect() {
 function animateCounter(element, target, duration = 2000) {
     let start = 0;
     const increment = target / (duration / 16);
-    
+
     function updateCounter() {
         start += increment;
         if (start < target) {
@@ -422,7 +459,7 @@ function animateCounter(element, target, duration = 2000) {
             element.textContent = target;
         }
     }
-    
+
     updateCounter();
 }
 
@@ -451,9 +488,9 @@ function initPreloader() {
         z-index: 9999;
         transition: opacity 0.5s ease, visibility 0.5s ease;
     `;
-    
+
     document.body.prepend(preloader);
-    
+
     window.addEventListener('load', () => {
         setTimeout(() => {
             preloader.style.opacity = '0';
