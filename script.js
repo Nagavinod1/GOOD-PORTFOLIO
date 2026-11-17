@@ -124,11 +124,11 @@ function initTypingAnimation() {
     if (!dynamicText) return;
 
     const words = [
-        'Software Developer',
-        'AI/ML Enthusiast',
-        'Full-Stack Developer',
+        'Data Science Enthusiast',
+        'AI/ML Engineer',
+        'Data Analyst',
         'Problem Solver',
-        'Tech Innovator'
+        'Python Developer'
     ];
 
     let wordIndex = 0;
